@@ -1,8 +1,10 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState, useEffect} from "react";
+import CreateProduct from "../components/CreateProduct";
 import Product from "../components/Product";
+import HeadComponent from '../components/Head';
 
-import { useWallet } from '@solana/wallet-adapter-react';
-import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
+import { useWallet } from "@solana/wallet-adapter-react";
+import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
 
 // Constants
 const TWITTER_HANDLE = "jia_ayo";
@@ -10,8 +12,20 @@ const TWITTER_LINK = `https://twitter.com/${TWITTER_HANDLE}`;
 
 const App = () => {
   const { publicKey } = useWallet();
+  const isOwner = ( publicKey ? publicKey.toString() === process.env.NEXT_PUBLIC_OWNER_PUBLIC_KEY : true );
+  const [creating, setCreating] = useState(false);
   const [products, setProducts] = useState([]);
+  
+  const renderNotConnectedContainer = () => (
+    <div>
+      <img src="money-exchange.png" alt="emoji" width={360} height={360} />
 
+      <div className="button-container">
+        <WalletMultiButton className="cta-button connect-wallet-button" />
+      </div>    
+    </div>
+  );
+  
   useEffect(() => {
     if (publicKey) {
       fetch(`/api/fetchProducts`)
@@ -23,16 +37,6 @@ const App = () => {
     }
   }, [publicKey]);
 
-  const renderNotConnectedContainer = () => (
-    <div>
-      <img src="money-exchange.png" alt="emoji" width={360} height={360} />
-
-      <div className="button-container">
-        <WalletMultiButton className="cta-button connect-wallet-button" />
-      </div>    
-    </div>
-  );
-
   const renderItemBuyContainer = () => (
     <div className="products-container">
       {products.map((product) => (
@@ -41,19 +45,24 @@ const App = () => {
     </div>
   );
 
-  
   return (
     <div className="App">
+      <HeadComponent/>
       <div className="container">
         <header className="header-container">
-          <p className="header">Jia  Store  🛒</p>
-          <p className="sub-text">The only nigerian store that allows you to pay in solana <img src="solana.png" width={50} height={50}/> </p>
+         <p className="header">Jia  Store  🛒</p>
+         <p className="sub-text">The only nigerian store that allows you to pay in solana <img src="solana.png" width={50} height={50}/> </p>
+
+          {isOwner && (
+            <button className="create-product-button" onClick={() => setCreating(!creating)}>
+              {creating ? "Close" : "Create Product"}
+            </button>
+          )}
         </header>
 
         <main>
-          {/* We only render the connect button if public key doesn't exist */}
-          {publicKey ? 'Connected!' : renderNotConnectedContainer()}
-
+          {creating && <CreateProduct />}
+          {publicKey ? renderItemBuyContainer() : renderNotConnectedContainer()}
         </main>
 
         <div className="footer-container">
@@ -63,7 +72,7 @@ const App = () => {
             href={TWITTER_LINK}
             target="_blank"
             rel="noreferrer"
-          >{`built by @${TWITTER_HANDLE}`}</a>
+          >{`built on @${TWITTER_HANDLE}`}</a>
         </div>
       </div>
     </div>
@@ -71,3 +80,13 @@ const App = () => {
 };
 
 export default App;
+
+
+
+
+
+
+
+
+
+
